@@ -15,6 +15,8 @@
    python/index
    proxmox/index
    proxmox/sub
+   kuberntes/index
+   kuberntes/sub
 
 Welcome to s-tanaka-test's documentation!
 =========================================
