@@ -1,44 +1,44 @@
 #
-name: Demo Push
+name: Build Sphinx
 
 # This workflow runs when any of the following occur:
 # - A push is made to a branch called `main` or `seed`
 # - A tag starting with "v" is created
 # - A pull request is created or updated
 on:
-  push:
+  pull_request:
     branches:
       - main
+    types:
+      - opened
+      - synchronize
+      - reopened
   workflow_dispatch:
 env:
-  IMAGE_NAME: sphinx
+  GITHUB_MAIL: 41898282+github-actions[bot]@users.noreply.github.com
+  GITHUB_NAME: github-actions[bot]
 #
 jobs:
   # This pushes the image to GitHub Packages.
   push:
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build image
-        run: docker build . --file Dockerfile --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
-
-      - name: Log in to registry
-        run: echo "${{ secrets.PACKAGES_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-        #
-      - name: Push image
+      # テンプレートが更新されたかをチェック
+      - name: Git diff
+        id: diff
         run: |
-          VERSION=${{ github.sha }}
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+          git add -N .
+          git diff --name-only --exit-code
+        continue-on-error: true
 
-          # This changes all uppercase characters to lowercase.
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          
-          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
+      # テンプレートをPush
+      - name: Add generated files to the pull request
+        run: |
+          git config --local user.email ${{ env.GITHUB_MAIL }}
+          git config --local user.name ${{ env.GITHUB_NAME }}
+          git add .
+          git commit -m "Add generated HTML to the pull request"
+          git push origin HEAD:${{ github.head_ref }}
+        if: steps.diff.outcome == 'failure'
