@@ -25,14 +25,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # テンプレートが更新されたかをチェック
-      - name: Git diff
-        id: diff
-        run: |
-          git add -N .
-          git diff --name-only --exit-code
-        continue-on-error: true
-
       # テンプレートをPush
       - name: Add generated files to the pull request
         run: |
