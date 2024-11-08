@@ -1,0 +1,16 @@
+services:
+  docs:
+    build:
+      context: ./
+      target: production
+    ports:
+      - 3000:80
+    platform: linux/x86_64
+
+  shell:
+    build:
+      context: ./
+      target: dev
+    volumes:
+      - ./docs:/docs
+    platform: linux/x86_64
